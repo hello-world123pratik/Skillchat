@@ -23,9 +23,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Frontend origin
-  credentials: true,
+  origin: ["http://localhost:5173", "https://skillchat-frontend.onrender.com"],
+  credentials: true
 }));
+
 app.use(express.json());
 
 // Ensure 'uploads' folder exists and is public
