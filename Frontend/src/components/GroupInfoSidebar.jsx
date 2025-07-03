@@ -18,7 +18,7 @@ const GroupInfoSidebar = ({ groupId }) => {
 
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:5173/api/groups/${groupId}`, {
+      const res = await axios.get(`https://skillchat-backend.onrender.com/api/groups/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setGroup(res.data);
@@ -44,7 +44,7 @@ const GroupInfoSidebar = ({ groupId }) => {
   const handleSave = async () => {
     try {
       await axios.put(
-        `http://localhost:5173/api/groups/${groupId}`,
+        `https://skillchat-backend.onrender.com/api/groups/${groupId}`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -60,7 +60,7 @@ const GroupInfoSidebar = ({ groupId }) => {
   const handleRemoveMember = async (memberId) => {
     try {
       await axios.delete(
-        `http://localhost:5173/api/groups/${groupId}/members/${memberId}`,
+        `https://skillchat-backend.onrender.com/api/groups/${groupId}/members/${memberId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
