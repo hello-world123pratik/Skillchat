@@ -1,4 +1,4 @@
-import { useContext } from "react"; // Only once!
+import { useContext } from "react"; 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import { AuthContext } from "./context/AuthContext";
