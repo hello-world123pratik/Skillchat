@@ -20,7 +20,7 @@ export default function GroupChatPage() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:5000/api/messages/${groupId}`,
+        `https://skillchat-backend.onrender.com/api/messages/${groupId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,7 +44,7 @@ export default function GroupChatPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/messages",
+        "https://skillchat-backend.onrender.com/api/messages",
         {
           groupId,
           content: input,
@@ -67,7 +67,7 @@ export default function GroupChatPage() {
     try {
       const token = localStorage.getItem("token");
 
-      await axios.delete(`http://localhost:5000/api/messages/${messageId}`, {
+      await axios.delete(`https://skillchat-backend.onrender.com/api/messages/${messageId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
