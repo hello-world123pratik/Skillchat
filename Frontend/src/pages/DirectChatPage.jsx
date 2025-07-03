@@ -133,7 +133,7 @@ export default function DirectChatPage() {
   if (receiverNotFound) {
     return (
       <div className="p-6 text-center text-red-500">
-        ⚠️ The user you’re trying to chat with no longer exists.
+         The user you’re trying to chat with no longer exists.
         <br />
         <button
           onClick={() => navigate("/")}
