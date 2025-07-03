@@ -101,7 +101,7 @@ export const getUserProfileById = async (req, res) => {
       experience: user.experience || "",
       skills: user.skills || [],
       groups: user.groups || [],
-      createdAt: user.createdAt || null, // ✅ Make sure this is included
+      createdAt: user.createdAt || null, 
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
