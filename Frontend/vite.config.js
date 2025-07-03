@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Your Express backend port
+        target: 'https://skillchat-backend.onrender.com', // Express backend port
         changeOrigin: true,
         secure: false,
       },
