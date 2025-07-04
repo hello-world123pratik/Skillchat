@@ -37,6 +37,11 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const getCacheBustedImage = (url) => {
+    if (!url) return "";
+    return `${url}?v=${Date.now()}`;
+  };
+
   return (
     <nav className="bg-yellow-100 backdrop-blur-md shadow-sm border-b border-yellow-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -101,7 +106,7 @@ export default function Navbar() {
                 >
                   {user.profileImage && (
                     <img
-                      src={user.profileImage}
+                      src={getCacheBustedImage(user.profileImage)}
                       alt="Profile"
                       className="w-8 h-8 rounded-full object-cover border"
                     />
@@ -171,7 +176,7 @@ export default function Navbar() {
               <div className="flex items-center gap-2 mt-3">
                 {user.profileImage && (
                   <img
-                    src={user.profileImage}
+                    src={getCacheBustedImage(user.profileImage)}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border"
                   />
@@ -199,3 +204,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
