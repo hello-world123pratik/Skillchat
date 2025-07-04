@@ -48,35 +48,37 @@ export default function UserProfilePage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const data = new FormData();
-    Object.entries(formData).forEach(([k, v]) => data.append(k, v));
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    // Deduplicate and send skills as array
-    const uniqueSkills = [...new Set(skills.map((s) => s.trim()))];
-    uniqueSkills.forEach((skill) => data.append("skills[]", skill));
+  const data = new FormData();
+  Object.entries(formData).forEach(([k, v]) => data.append(k, v));
 
-    if (profileImage) data.append("profileImage", profileImage);
+  const uniqueSkills = [...new Set(skills.map((s) => s.trim()))];
+  data.append("skills", uniqueSkills.join(","));
 
-    try {
-      const res = await axios.put(`${API}/profile`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+  if (profileImage) {
+    data.append("profileImage", profileImage);
+  }
 
-      setFormData((prev) => ({ ...prev, ...res.data.user }));
-      setSkills(res.data.user.skills || []);
-      setMessage({ type: "success", text: "Profile updated!" });
-      await refreshUser(); 
-    } catch (err) {
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Profile update failed.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    const res = await axios.put(`${API}/profile`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    setFormData((prev) => ({ ...prev, ...res.data.user }));
+    setSkills(res.data.user.skills || []);
+    setMessage({ type: "success", text: "Profile updated!" });
+    await refreshUser(); 
+  } catch (err) {
+    setMessage({
+      type: "error",
+      text: err.response?.data?.message || "Profile update failed.",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] bg-yellow-50">
