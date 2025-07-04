@@ -67,7 +67,7 @@ export default function UserProfilePage() {
       setFormData((prev) => ({ ...prev, ...res.data.user }));
       setSkills(res.data.user.skills || []);
       setMessage({ type: "success", text: "Profile updated!" });
-      await refreshUser(); // ✅ refresh user context
+      await refreshUser(); 
     } catch (err) {
       setMessage({
         type: "error",
