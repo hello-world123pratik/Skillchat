@@ -4,16 +4,16 @@ import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 
 export default function UserProfilePage() {
-  const { user }                    = useContext(AuthContext);
-  const [formData, setFormData]     = useState({ name: "", email: "", phone: "" });
-  const [skills, setSkills]         = useState([]);
-  const [newSkill, setNewSkill]     = useState("");
+  const { user, refreshUser } = useContext(AuthContext); 
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [skills, setSkills] = useState([]);
+  const [newSkill, setNewSkill] = useState("");
   const [profileImage, setProfileImage] = useState(null);
-  const [preview, setPreview]       = useState(null);
-  const [message, setMessage]       = useState(null);
-  const [loading, setLoading]       = useState(true);
+  const [preview, setPreview] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const API                            = import.meta.env.VITE_REACT_APP_API_URL;
+  const API = import.meta.env.VITE_REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,8 +62,11 @@ export default function UserProfilePage() {
       const res = await axios.put(`${API}/profile`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       setFormData((prev) => ({ ...prev, ...res.data.user }));
       setMessage({ type: "success", text: "Profile updated!" });
+
+      await refreshUser(); // ✅ Refresh global user state
     } catch (err) {
       setMessage({
         type: "error",
@@ -98,6 +101,7 @@ export default function UserProfilePage() {
       {/* Main */}
       <main className="flex-1 p-8 bg-white overflow-y-auto">
         <h3 className="text-3xl font-bold text-gray-800 mb-6">Profile Information</h3>
+
         {message && (
           <div
             className={`mb-6 p-4 text-sm rounded-lg border ${
@@ -191,4 +195,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
