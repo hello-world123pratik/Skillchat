@@ -1,11 +1,9 @@
 import User from "../models/User.js";
 
-// Utility to get base URL
 const getBaseURL = (req) => {
   return process.env.BASE_URL || `https://${req.get("host")}`;
 };
 
-// @route   GET /profile
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -27,21 +25,16 @@ export const getProfile = async (req, res) => {
       resume: resumeUrl,
     });
   } catch (err) {
-    console.error("Error loading profile:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// @route   PUT /profile
 export const updateProfile = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
-
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Email check
+    // Check for duplicate email
     if (req.body.email && req.body.email !== user.email) {
       const existingUser = await User.findOne({ email: req.body.email });
       if (existingUser) {
@@ -50,27 +43,20 @@ export const updateProfile = async (req, res) => {
       user.email = req.body.email;
     }
 
-    // Update fields
+    // Update text fields
     user.name = req.body.name || user.name;
     user.phone = req.body.phone || user.phone;
     user.education = req.body.education || user.education;
     user.experience = req.body.experience || user.experience;
 
-    // Skills (handle JSON or string)
+    // Skills
     if (req.body.skills) {
-      try {
-        const parsedSkills = JSON.parse(req.body.skills);
-        user.skills = Array.isArray(parsedSkills)
-          ? parsedSkills.map((s) => s.trim())
-          : [];
-      } catch {
-        user.skills = typeof req.body.skills === "string"
-          ? req.body.skills.split(",").map((s) => s.trim())
-          : [];
-      }
+      user.skills = typeof req.body.skills === "string"
+        ? req.body.skills.split(",").map((s) => s.trim())
+        : req.body.skills;
     }
 
-    // Handle file uploads
+    // File uploads
     if (req.files?.profileImage?.[0]) {
       user.profileImage = `/uploads/${req.files.profileImage[0].filename}`;
     }
@@ -93,15 +79,14 @@ export const updateProfile = async (req, res) => {
         skills: user.skills,
         profileImage: user.profileImage ? `${host}${user.profileImage}` : null,
         resume: user.resume ? `${host}${user.resume}` : null,
-      },
+      }
     });
   } catch (err) {
-    console.error("Update profile error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// Optional: for public profile viewing by ID
 export const getUserProfileById = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).select(
@@ -120,10 +105,9 @@ export const getUserProfileById = async (req, res) => {
       experience: user.experience || "",
       skills: user.skills || [],
       groups: user.groups || [],
-      createdAt: user.createdAt || null,
+      createdAt: user.createdAt || null, 
     });
   } catch (err) {
-    console.error("Fetch user by ID error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
