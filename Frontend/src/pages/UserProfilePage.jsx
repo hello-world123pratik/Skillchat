@@ -50,16 +50,14 @@ export default function UserProfilePage() {
   const handleSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
-
   const data = new FormData();
   Object.entries(formData).forEach(([k, v]) => data.append(k, v));
 
+  // Deduplicate and send skills as comma-separated string
   const uniqueSkills = [...new Set(skills.map((s) => s.trim()))];
   data.append("skills", uniqueSkills.join(","));
 
-  if (profileImage) {
-    data.append("profileImage", profileImage);
-  }
+  if (profileImage) data.append("profileImage", profileImage);
 
   try {
     const res = await axios.put(`${API}/profile`, data, {
@@ -69,7 +67,7 @@ export default function UserProfilePage() {
     setFormData((prev) => ({ ...prev, ...res.data.user }));
     setSkills(res.data.user.skills || []);
     setMessage({ type: "success", text: "Profile updated!" });
-    await refreshUser(); 
+    await refreshUser();
   } catch (err) {
     setMessage({
       type: "error",
@@ -79,6 +77,7 @@ export default function UserProfilePage() {
     setIsSubmitting(false);
   }
 };
+
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] bg-yellow-50">
