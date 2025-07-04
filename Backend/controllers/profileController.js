@@ -1,11 +1,15 @@
 import User from "../models/User.js";
 
+const getBaseURL = (req) => {
+  return process.env.BASE_URL || `https://${req.get("host")}`;
+};
+
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const host = `${req.protocol}://${req.get("host")}`;
+    const host = getBaseURL(req);
     const profileImageUrl = user.profileImage ? `${host}${user.profileImage}` : null;
     const resumeUrl = user.resume ? `${host}${user.resume}` : null;
 
@@ -53,7 +57,6 @@ export const updateProfile = async (req, res) => {
     }
 
     // File uploads
-    const host = `${req.protocol}://${req.get("host")}`;
     if (req.files?.profileImage?.[0]) {
       user.profileImage = `/uploads/${req.files.profileImage[0].filename}`;
     }
@@ -63,6 +66,7 @@ export const updateProfile = async (req, res) => {
 
     await user.save();
 
+    const host = getBaseURL(req);
     res.json({
       message: "Profile updated",
       user: {
@@ -90,7 +94,7 @@ export const getUserProfileById = async (req, res) => {
     );
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const host = `${req.protocol}://${req.get("host")}`;
+    const host = getBaseURL(req);
     const profileImageUrl = user.profileImage ? `${host}${user.profileImage}` : null;
 
     res.json({
@@ -107,3 +111,4 @@ export const getUserProfileById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
