@@ -1,18 +1,19 @@
-import { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [message, setMessage] = useState(null);
+export default function Login() {
+  const [form, setForm]             = useState({ email: "", password: "" });
+  const [message, setMessage]       = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, user } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { login, user }             = useContext(AuthContext);
+  const navigate                    = useNavigate();
+  const API                          = import.meta.env.VITE_REACT_APP_API_URL;
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
@@ -25,15 +26,11 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_REACT_APP_API_URL}/auth/login`,
+        `${API}/auth/login`,
         form
       );
-
       await login(res.data.token);
-
       setMessage({ type: "success", text: res.data.message });
-
-      setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
       setMessage({
         type: "error",
@@ -112,6 +109,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}
