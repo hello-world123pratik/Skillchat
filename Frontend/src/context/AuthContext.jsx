@@ -4,15 +4,15 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const API = import.meta.env.VITE_REACT_APP_API_URL; // e.g. https://skillchat-backend.onrender.com/api
+  const API = import.meta.env.VITE_REACT_APP_API_URL;
 
   // Load or refresh the current user
   const refreshUser = async () => {
     const token = localStorage.getItem("token");
+
     if (token) {
-      // Attach to every request
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } else {
       delete axios.defaults.headers.common["Authorization"];
@@ -22,7 +22,14 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const res = await axios.get(`${API}/profile`);
-      setUser({ ...res.data, token });
+      const updatedUser = { ...res.data, token };
+
+      // Add a version param to profileImage to bust cache
+      if (updatedUser.profileImage) {
+        updatedUser.profileImage = `${updatedUser.profileImage}?v=${Date.now()}`;
+      }
+
+      setUser(updatedUser); // <- force new object reference
     } catch (err) {
       console.error("Failed to refresh user:", err);
       delete axios.defaults.headers.common["Authorization"];
@@ -37,14 +44,12 @@ export const AuthProvider = ({ children }) => {
     refreshUser();
   }, []);
 
-  // After successful login
   const login = async (token) => {
     localStorage.setItem("token", token);
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     await refreshUser();
   };
 
-  // Clear everything
   const logout = () => {
     delete axios.defaults.headers.common["Authorization"];
     localStorage.removeItem("token");
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );
