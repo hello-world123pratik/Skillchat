@@ -4,7 +4,7 @@ import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 
 export default function UserProfilePage() {
-  const { user, refreshUser } = useContext(AuthContext); 
+  const { user, refreshUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
@@ -40,9 +40,6 @@ export default function UserProfilePage() {
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSkillRemove = (skillToRemove) =>
-    setSkills(skills.filter((s) => s !== skillToRemove));
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -55,7 +52,11 @@ export default function UserProfilePage() {
     setIsSubmitting(true);
     const data = new FormData();
     Object.entries(formData).forEach(([k, v]) => data.append(k, v));
-    if (skills.length) data.append("skills", skills.join(","));
+
+    // Deduplicate and send skills as array
+    const uniqueSkills = [...new Set(skills.map((s) => s.trim()))];
+    uniqueSkills.forEach((skill) => data.append("skills[]", skill));
+
     if (profileImage) data.append("profileImage", profileImage);
 
     try {
@@ -64,9 +65,9 @@ export default function UserProfilePage() {
       });
 
       setFormData((prev) => ({ ...prev, ...res.data.user }));
+      setSkills(res.data.user.skills || []);
       setMessage({ type: "success", text: "Profile updated!" });
-
-      await refreshUser(); // ✅ Refresh global user state
+      await refreshUser(); // ✅ refresh user context
     } catch (err) {
       setMessage({
         type: "error",
@@ -101,7 +102,6 @@ export default function UserProfilePage() {
       {/* Main */}
       <main className="flex-1 p-8 bg-white overflow-y-auto">
         <h3 className="text-3xl font-bold text-gray-800 mb-6">Profile Information</h3>
-
         {message && (
           <div
             className={`mb-6 p-4 text-sm rounded-lg border ${
@@ -148,14 +148,17 @@ export default function UserProfilePage() {
               <input
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
-                placeholder="Add skill and press Enter"
+                placeholder="Add skill and press Enter or Comma"
                 className="flex-1 p-3 border rounded-lg bg-white shadow-sm focus:ring-yellow-400 focus:border-yellow-400"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" || e.key === ",") {
                     e.preventDefault();
-                    const trimmed = newSkill.trim();
-                    if (trimmed && !skills.includes(trimmed)) {
-                      setSkills([...skills, trimmed]);
+                    const newSkills = newSkill
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter((s) => s && !skills.includes(s));
+                    if (newSkills.length) {
+                      setSkills([...skills, ...newSkills]);
                     }
                     setNewSkill("");
                   }
@@ -195,3 +198,4 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
