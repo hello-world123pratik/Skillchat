@@ -5,7 +5,7 @@ import MessageBubble from "../components/MessageBubble";
 import { AuthContext } from "../context/AuthContext";
 
 export default function DirectChatPage() {
-  const { conversationId } = useParams(); // conversationId is actually the recipient userId
+  const { conversationId } = useParams(); // recipient userId
   const navigate = useNavigate();
   const scrollRef = useRef(null);
 
@@ -16,7 +16,6 @@ export default function DirectChatPage() {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [receiverNotFound, setReceiverNotFound] = useState(false);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login", { replace: true });
@@ -53,7 +52,7 @@ export default function DirectChatPage() {
     fetchReceiver();
   }, [conversationId]);
 
-  // Fetch messages between current user and receiver
+  // Fetch messages
   useEffect(() => {
     if (loading || !user || !receiver || receiverNotFound) return;
 
@@ -81,22 +80,13 @@ export default function DirectChatPage() {
     };
 
     fetchMessages();
-  }, [
-    conversationId,
-    loading,
-    user,
-    receiver,
-    receiverNotFound,
-    logout,
-    navigate,
-  ]);
+  }, [conversationId, loading, user, receiver, receiverNotFound, logout, navigate]);
 
-  // Scroll to bottom when messages update
+  // Scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle message send
   const handleSend = async () => {
     if (!newMessage.trim() || !receiver?._id) return;
 
@@ -105,7 +95,7 @@ export default function DirectChatPage() {
         `${import.meta.env.VITE_REACT_APP_API_URL}/messages/direct`,
         {
           recipientId: receiver._id,
-          content: newMessage,
+          content: newMessage.trim(),
         },
         {
           headers: {
@@ -113,7 +103,6 @@ export default function DirectChatPage() {
           },
         }
       );
-
       setMessages((prev) => [...prev, res.data]);
       setNewMessage("");
     } catch (err) {
@@ -121,7 +110,6 @@ export default function DirectChatPage() {
     }
   };
 
-  // Loading/auth checks
   if (loading || !user) {
     return (
       <div className="p-6 text-center text-gray-500">
@@ -133,7 +121,7 @@ export default function DirectChatPage() {
   if (receiverNotFound) {
     return (
       <div className="p-6 text-center text-red-500">
-         The user you’re trying to chat with no longer exists.
+        The user you’re trying to chat with no longer exists.
         <br />
         <button
           onClick={() => navigate("/")}
@@ -147,7 +135,14 @@ export default function DirectChatPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto h-screen flex flex-col">
-      <h2 className="text-xl font-bold mb-4">
+      <h2 className="text-xl font-bold mb-4 flex items-center gap-3">
+        {receiver?.profileImage && (
+          <img
+            src={receiver.profileImage}
+            alt="Profile"
+            className="w-8 h-8 rounded-full object-cover border"
+          />
+        )}
         Chat with {receiver?.name || "Unknown User"}
       </h2>
 
@@ -158,14 +153,14 @@ export default function DirectChatPage() {
           <p className="text-gray-500">No messages yet.</p>
         ) : (
           messages.map((msg) => (
-            <div ref={scrollRef} key={msg._id}>
-              <MessageBubble
-                message={msg}
-                isOwn={msg.sender._id === user._id}
-              />
-            </div>
+            <MessageBubble
+              key={msg._id}
+              message={msg}
+              isOwn={msg.sender._id === user._id}
+            />
           ))
         )}
+        <div ref={scrollRef} />
       </div>
 
       <div className="flex gap-2 mt-auto">
@@ -174,12 +169,18 @@ export default function DirectChatPage() {
           placeholder="Type a message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           className="flex-1 border rounded px-4 py-2"
         />
         <button
           onClick={handleSend}
           className="bg-blue-600 text-white px-4 py-2 rounded"
-          disabled={!receiver}
+          disabled={!receiver || !newMessage.trim()}
         >
           Send
         </button>

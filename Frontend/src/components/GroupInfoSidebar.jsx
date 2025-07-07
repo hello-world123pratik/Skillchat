@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode"; // ✅ Correct named import
 
 const GroupInfoSidebar = ({ groupId }) => {
   const [group, setGroup] = useState(null);
@@ -9,6 +10,8 @@ const GroupInfoSidebar = ({ groupId }) => {
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem('token');
+  const decodedToken = token ? jwtDecode(token) : null; // ✅ Use jwtDecode
+  const userId = decodedToken?.id || decodedToken?._id;
 
   const fetchGroup = async () => {
     if (!token) {
@@ -18,7 +21,7 @@ const GroupInfoSidebar = ({ groupId }) => {
 
     try {
       setLoading(true);
-      const res = await axios.get(`https://skillchat-backend.onrender.com/api/groups/${groupId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/groups/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setGroup(res.data);
@@ -44,7 +47,7 @@ const GroupInfoSidebar = ({ groupId }) => {
   const handleSave = async () => {
     try {
       await axios.put(
-        `https://skillchat-backend.onrender.com/api/groups/${groupId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/groups/${groupId}`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -58,16 +61,40 @@ const GroupInfoSidebar = ({ groupId }) => {
   };
 
   const handleRemoveMember = async (memberId) => {
+    if (memberId === userId) {
+      alert("You can't remove yourself here. Use 'Leave Group' instead.");
+      return;
+    }
+
     try {
       await axios.delete(
-        `https://skillchat-backend.onrender.com/api/groups/${groupId}/members/${memberId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/groups/${groupId}/members/${memberId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchGroup(); // Refresh members list
+      fetchGroup();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to remove member');
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    const confirmLeave = window.confirm("Are you sure you want to leave this group?");
+    if (!confirmLeave) return;
+
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_REACT_APP_API_URL}/groups/${groupId}/leave`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("You left the group.");
+      setGroup(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to leave group");
     }
   };
 
@@ -80,12 +107,11 @@ const GroupInfoSidebar = ({ groupId }) => {
     <aside className="p-4 border-l border-gray-300 w-80 bg-gray-50 space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Group Info</h2>
-        <button
-          className="text-blue-600 hover:underline"
-          onClick={handleEditToggle}
-        >
-          {editing ? 'Cancel' : 'Edit'}
-        </button>
+        {group.createdBy?._id === userId && (
+          <button className="text-blue-600 hover:underline" onClick={handleEditToggle}>
+            {editing ? 'Cancel' : 'Edit'}
+          </button>
+        )}
       </div>
 
       {editing ? (
@@ -127,13 +153,15 @@ const GroupInfoSidebar = ({ groupId }) => {
                 key={member._id}
                 className="flex justify-between items-center p-2 bg-white rounded shadow-sm"
               >
-                <span>{member.username || member.email}</span>
-                <button
-                  onClick={() => handleRemoveMember(member._id)}
-                  className="text-red-500 hover:underline text-sm"
-                >
-                  Remove
-                </button>
+                <span>{member.username || member.name || member.email}</span>
+                {group.createdBy?._id === userId && member._id !== userId && (
+                  <button
+                    onClick={() => handleRemoveMember(member._id)}
+                    className="text-red-500 hover:underline text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
               </li>
             ))
           ) : (
@@ -141,6 +169,13 @@ const GroupInfoSidebar = ({ groupId }) => {
           )}
         </ul>
       </div>
+
+      <button
+        onClick={handleLeaveGroup}
+        className="mt-4 w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+      >
+        Leave Group
+      </button>
     </aside>
   );
 };

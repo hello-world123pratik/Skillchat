@@ -18,6 +18,8 @@ import MessagesPage from "./pages/MessagesPage";
 import DirectChatPage from "./pages/DirectChatPage";
 import StartChatPage from "./pages/StartChatPage";
 import ConversationsPage from "./pages/ConversationsPage";
+import AllMyGroupsPage from "./pages/AllMyGroupsPage";
+
 
 function AppRoutes() {
   const { user, loading } = useContext(AuthContext);
@@ -83,6 +85,8 @@ function AppRoutes() {
           element={user ? <StartChatPage /> : <Navigate to="/login" replace />}
         />
         <Route path="/conversations" element={<ConversationsPage />} />
+
+        <Route path="/my-groups" element={user ? <AllMyGroupsPage /> : <Navigate to="/login" replace />} />
         
         {/* Fallback */}
         <Route path="*" element={<Error404 />} />

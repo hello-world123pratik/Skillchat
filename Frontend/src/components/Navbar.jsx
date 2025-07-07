@@ -70,8 +70,11 @@ export default function Navbar() {
                 </button>
                 {groupDropdownOpen && (
                   <div className="absolute top-full mt-2 w-48 bg-white rounded-md shadow-lg border z-50">
-                    <Link to="/groups" className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100">
+                    <Link to="/my-groups" className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100">
                       My Groups
+                    </Link>
+                    <Link to="/groups" className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100">
+                      All Groups
                     </Link>
                     <Link to="/groups/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100">
                       Create Group
@@ -158,8 +161,11 @@ export default function Navbar() {
               <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block text-gray-800 hover:text-yellow-500">
                 Dashboard
               </Link>
-              <Link to="/groups" onClick={() => setMobileMenuOpen(false)} className="block text-gray-800 hover:text-yellow-500">
+              <Link to="/my-groups" onClick={() => setMobileMenuOpen(false)} className="block text-gray-800 hover:text-yellow-500">
                 My Groups
+              </Link>
+              <Link to="/groups" onClick={() => setMobileMenuOpen(false)} className="block text-gray-800 hover:text-yellow-500">
+                All Groups
               </Link>
               <Link to="/groups/create" onClick={() => setMobileMenuOpen(false)} className="block text-gray-800 hover:text-yellow-500">
                 Create Group

@@ -85,16 +85,25 @@ export const leaveGroup = async (req, res) => {
     const group = await Group.findById(req.params.id);
     if (!group) return res.status(404).json({ message: "Group not found" });
 
+    // Remove the user from members list
     group.members = group.members.filter(
       memberId => memberId.toString() !== req.user._id.toString()
     );
 
+    // If no members left, delete the group
+    if (group.members.length === 0) {
+      await Group.findByIdAndDelete(group._id);
+      return res.json({ message: "Left group and group deleted (no members remaining)" });
+    }
+
     await group.save();
     res.json({ message: "Left group successfully" });
   } catch (err) {
+    console.error("Error in leaveGroup:", err);
     res.status(500).json({ message: "Failed to leave group" });
   }
 };
+
 
 export const removeGroupMember = async (req, res) => {
   try {
