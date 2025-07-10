@@ -4,19 +4,26 @@ export const sendMessage = async (req, res) => {
   try {
     const { groupId, content } = req.body;
 
-    if (!groupId || !content) {
-      return res.status(400).json({ error: "Group ID and content are required" });
+    if (!groupId || (!content && !req.file)) {
+      return res.status(400).json({ error: "Message content or file is required" });
     }
 
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Unauthorized: No user attached" });
     }
 
-    const message = await Message.create({
+    const messageData = {
       sender: req.user._id,
       group: groupId,
-      content,
-    });
+      content: content || "", // Optional text
+    };
+
+    if (req.file) {
+      messageData.fileUrl = `/uploads/${req.file.filename}`;
+      messageData.originalFileName = req.file.originalname;
+    }
+
+    const message = await Message.create(messageData);
 
     const populatedMessage = await message.populate("sender", "name email");
     res.status(201).json(populatedMessage);

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 
 import { AuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -14,18 +15,16 @@ import MyGroupsPage from "./pages/MyGroupsPage";
 import GroupCreatePage from "./pages/GroupCreatePage";
 import GroupChatPage from "./pages/GroupChatPage";
 import CalendarPage from "./pages/CalendarPage";
-import MessagesPage from "./pages/MessagesPage";
-import DirectChatPage from "./pages/DirectChatPage";
 import StartChatPage from "./pages/StartChatPage";
-import ConversationsPage from "./pages/ConversationsPage";
 import AllMyGroupsPage from "./pages/AllMyGroupsPage";
 
-
+// AppRoutes component
 function AppRoutes() {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
   const hideNavbar = ["/login", "/register"].includes(location.pathname);
 
+  // Wait for auth check
   if (loading) return null;
 
   return (
@@ -72,29 +71,25 @@ function AppRoutes() {
           path="/groups/:groupId/calendar"
           element={user ? <CalendarPage /> : <Navigate to="/login" replace />}
         />
-        <Route
-          path="/messages"
-          element={user ? <MessagesPage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/conversations/:conversationId"
-          element={user ? <DirectChatPage /> : <Navigate to="/login" replace />}
-        />
+        
         <Route
           path="/start-chat"
           element={user ? <StartChatPage /> : <Navigate to="/login" replace />}
         />
-        <Route path="/conversations" element={<ConversationsPage />} />
-
-        <Route path="/my-groups" element={user ? <AllMyGroupsPage /> : <Navigate to="/login" replace />} />
         
-        {/* Fallback */}
+        <Route
+          path="/my-groups"
+          element={user ? <AllMyGroupsPage /> : <Navigate to="/login" replace />}
+        />
+
+        {/* 404 Route */}
         <Route path="*" element={<Error404 />} />
       </Routes>
     </>
   );
 }
 
+// App component
 export default function App() {
   return (
     <Router>

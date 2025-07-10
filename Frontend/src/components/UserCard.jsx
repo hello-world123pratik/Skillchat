@@ -5,12 +5,18 @@ export default function UserCard({ user }) {
   const navigate = useNavigate();
 
   const handleStartChat = async () => {
+    if (!user || !user._id) {
+      console.warn("Invalid user object:", user);
+      alert("Cannot start chat: user ID is missing or invalid.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
         `${import.meta.env.VITE_REACT_APP_API_URL}/conversations`,
-        { userId: user._id }, // you pass the user you want to start chat with
+        { userId: user._id },
         {
           headers: {
             Authorization: `Bearer ${token}`,

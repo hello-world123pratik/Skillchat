@@ -33,7 +33,14 @@ export default function StartChatPage() {
         );
 
         const cleanedUsers = res.data.filter(
-          (u) => u && u.name && u.name.trim() !== "" && u.email && u.email.includes("@")
+          (u) =>
+            u &&
+            u._id &&
+            typeof u._id === "string" &&
+            u.name &&
+            u.name.trim() !== "" &&
+            u.email &&
+            u.email.includes("@")
         );
 
         setUsers(cleanedUsers);
@@ -53,7 +60,6 @@ export default function StartChatPage() {
     fetchUsers();
   }, [navigate]);
 
-  // Handle search filtering
   useEffect(() => {
     const term = searchTerm.toLowerCase();
     const filtered = users.filter(
@@ -79,7 +85,6 @@ export default function StartChatPage() {
           Start a New Chat
         </h2>
 
-        {/* Search Input */}
         <div className="mb-6">
           <input
             type="text"

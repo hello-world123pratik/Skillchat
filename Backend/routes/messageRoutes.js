@@ -2,24 +2,23 @@ import express from "express";
 import {
   sendMessage,
   getGroupMessages,
-  getConversations, 
+  getConversations,
   sendDirectMessage,
-  getDirectMessages,// <-- you need to define this controller too
+  getDirectMessages,
+  deleteMessage
 } from "../controllers/messageController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { deleteMessage } from "../controllers/messageController.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// Define this route BEFORE any dynamic params like :groupId
+// Specific routes must come before dynamic ones!
 router.get("/conversations", protect, getConversations);
-
-router.post("/", protect, sendMessage);
-router.get("/:groupId", protect, getGroupMessages);
-
-router.delete("/:id", protect, deleteMessage);
-
 router.get("/direct/:userId", protect, getDirectMessages);
-router.post("/direct", protect, sendDirectMessage); 
+router.post("/direct", protect, sendDirectMessage);
+
+router.post("/", protect, upload.single("file"), sendMessage);
+router.get("/:groupId", protect, getGroupMessages);
+router.delete("/:id", protect, deleteMessage);
 
 export default router;

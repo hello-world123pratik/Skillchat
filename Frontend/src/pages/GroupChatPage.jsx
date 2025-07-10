@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import GroupInfoSidebar from "../components/GroupInfoSidebar";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:5000/api/messages";
 
 export default function GroupChatPage() {
   const { groupId } = useParams();
@@ -13,75 +13,66 @@ export default function GroupChatPage() {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [file, setFile] = useState(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  const messagesEndRef = useRef();
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `https://skillchat-backend.onrender.com/api/messages/${groupId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const fetchedMessages = Array.isArray(res.data) ? res.data : [];
-      setMessages(fetchedMessages);
+      const res = await axios.get(`${API_BASE_URL}/${groupId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setMessages(Array.isArray(res.data) ? res.data : []);
       scrollToBottom();
     } catch (err) {
-      console.error("Failed to fetch messages:", err);
+      console.error("Error fetching messages:", err.response?.data || err.message);
     }
   };
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !file) return;
+
+    const formData = new FormData();
+    formData.append("groupId", groupId);
+    if (input.trim()) formData.append("content", input.trim());
+    if (file) formData.append("file", file);
 
     try {
       const token = localStorage.getItem("token");
-
-      await axios.post(
-        "https://skillchat-backend.onrender.com/api/messages",
-        {
-          groupId,
-          content: input,
+      await axios.post(API_BASE_URL, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      });
       setInput("");
+      setFile(null);
       fetchMessages();
     } catch (err) {
-      console.error("Failed to send message:", err);
+      console.error("Error sending message:", err.response?.data || err.message);
     }
   };
 
   const handleDeleteMessage = async (messageId) => {
     try {
       const token = localStorage.getItem("token");
-
-      await axios.delete(`https://skillchat-backend.onrender.com/api/messages/${messageId}`, {
+      await axios.delete(`${API_BASE_URL}/${messageId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
       setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
-      scrollToBottom();
     } catch (err) {
-      console.error("Failed to delete message:", err);
+      console.error("Error deleting message:", err.response?.data || err.message);
     }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -90,68 +81,139 @@ export default function GroupChatPage() {
     return () => clearInterval(interval);
   }, [groupId]);
 
+  const getFullFileUrl = (relativePath) => {
+    if (!relativePath) return "";
+    if (relativePath.startsWith("http")) return relativePath;
+    return `http://localhost:5000${relativePath}`;
+  };
+
+  const renderMessageContent = (msg) => {
+    if (msg.fileUrl) {
+      const fileExt = msg.fileUrl.split(".").pop().toLowerCase();
+      const fullFileUrl = getFullFileUrl(msg.fileUrl);
+
+      if (["mp4", "webm", "ogg"].includes(fileExt)) {
+        return (
+          <video controls className="max-w-full rounded mt-2">
+            <source src={fullFileUrl} type={`video/${fileExt}`} />
+            Your browser does not support the video tag.
+          </video>
+        );
+      } else {
+        return (
+          <a
+            href={fullFileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 text-sm underline mt-2 block"
+          >
+            Download {msg.originalFileName || "File"}
+          </a>
+        );
+      }
+    }
+
+    return <p className="text-sm">{msg.content}</p>;
+  };
+
   return (
     <div className="flex h-screen">
       <div className="flex-1 flex flex-col">
-        <header className="p-4 bg-blue-600 text-white flex justify-between items-center">
+        <header className="p-4 bg-yellow-400 text-gray-900 flex justify-between items-center shadow-sm">
           <h1 className="text-lg font-bold">Group Chat</h1>
           <div className="flex items-center gap-4">
             <button
-               onClick={() => setShowSidebar(!showSidebar)}
-               className="text-sm underline"
+              onClick={() => setShowSidebar((prev) => !prev)}
+              className="text-sm underline hover:text-gray-800"
             >
               {showSidebar ? "Hide Info" : "Show Info"}
-           </button>
-           <Link
-               to={`/groups/${groupId}/calendar`}
-               className="text-sm bg-green-400 px-3 py-1 rounded hover:bg-green-500"
+            </button>
+            <Link
+              to={`/groups/${groupId}/calendar`}
+              className="text-sm bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700"
             >
-               View Calendar
+              View Calendar
             </Link>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100">
-          {Array.isArray(messages) && messages.length === 0 && (
-            <p className="text-gray-500 text-sm">No messages yet.</p>
-          )}
-          {Array.isArray(messages) &&
-            messages.map((msg) => (
-              <div
-                key={msg._id}
-                className="p-2 rounded bg-white shadow flex justify-between items-center"
-              >
-                <p className="text-sm text-gray-800">
-                  <strong>{msg.sender?.name || "Unknown"}:</strong> {msg.content}
-                </p>
-                {msg.sender?._id === currentUserId && (
-                  <button
-                    onClick={() => handleDeleteMessage(msg._id)}
-                    className="ml-4 text-xs text-red-500 hover:underline"
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-yellow-50">
+          {messages.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center">No messages yet.</p>
+          ) : (
+            messages.map((msg) => {
+              const isCurrentUser = msg?.sender?._id === currentUserId;
+              return (
+                <div
+                  key={msg._id}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-xs md:max-w-md p-3 rounded-lg shadow ${
+                      isCurrentUser
+                        ? "bg-yellow-300 text-gray-900 rounded-br-none"
+                        : "bg-white text-gray-800 rounded-bl-none"
+                    }`}
                   >
-                    Delete
-                  </button>
-                )}
-              </div>
-            ))}
+                    <p className="text-sm font-semibold mb-1">
+                      {msg.sender?.name || "Unknown"}
+                    </p>
+                    {renderMessageContent(msg)}
+                    {isCurrentUser && (
+                      <button
+                        onClick={() => handleDeleteMessage(msg._id)}
+                        className="text-xs text-red-500 hover:underline mt-1"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={sendMessage} className="p-4 bg-white border-t flex gap-2">
+        {/* Message input with file support */}
+        <form
+          onSubmit={sendMessage}
+          className="p-4 bg-white border-t flex flex-col gap-2 sm:flex-row sm:items-center"
+        >
           <input
-            className="flex-1 border rounded px-3 py-2"
+            type="text"
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
           />
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          <input
+            type="file"
+            accept="video/*,application/pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+            onChange={(e) => {
+              const selectedFile = e.target.files[0];
+              if (selectedFile && selectedFile.size > 50 * 1024 * 1024) {
+                alert("File is too large! Max allowed size is 50MB.");
+                e.target.value = "";
+                return;
+              }
+              setFile(selectedFile);
+            }}
+            className="text-sm"
+          />
+          <button
+            type="submit"
+            className="bg-yellow-500 text-white px-5 py-2 rounded-full hover:bg-yellow-600 transition"
+          >
             Send
           </button>
         </form>
       </div>
 
       {showSidebar && (
-        <GroupInfoSidebar groupId={groupId} currentUserId={currentUserId} />
+        <div className="w-80 border-l border-yellow-300 bg-white shadow-lg">
+          <GroupInfoSidebar groupId={groupId} currentUserId={currentUserId} />
+        </div>
       )}
     </div>
   );
