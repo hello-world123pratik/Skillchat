@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+VITE_REACT_APP_API_URL=http://localhost:5000/api
+
+
