@@ -40,16 +40,12 @@ const userSchema = new mongoose.Schema(
     resume: {
       type: String, // path or URL
     },
-
-    // ✅ Skill Groups the user is part of
     groups: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Group",
       },
     ],
-
-    // ✅ Last seen (for chat app behavior)
     lastSeen: {
       type: Date,
       default: Date.now,
