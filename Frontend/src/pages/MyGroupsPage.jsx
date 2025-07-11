@@ -82,10 +82,10 @@ export default function MyGroupsPage() {
         )
       );
 
-      alert("✅ Successfully joined the group!");
+      alert("Successfully joined the group!");
     } catch (err) {
       console.error("Failed to join group:", err);
-      alert("⚠️ Could not join the group. Please try again.");
+      alert("Could not join the group. Please try again.");
     }
   };
 
