@@ -85,7 +85,7 @@ export const getConversations = async (req, res) => {
 
     res.json(conversations);
   } catch (err) {
-    console.error("🔥 getConversations error:", err);
+    console.error("getConversations error:", err);
     res.status(500).json({ error: "Failed to fetch conversations" });
   }
 };
