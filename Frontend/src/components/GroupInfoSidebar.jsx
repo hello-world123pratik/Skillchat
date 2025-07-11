@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode"; // ✅ Correct named import
+import { jwtDecode } from "jwt-decode"; 
 
 const GroupInfoSidebar = ({ groupId }) => {
   const [group, setGroup] = useState(null);
@@ -10,7 +10,7 @@ const GroupInfoSidebar = ({ groupId }) => {
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem('token');
-  const decodedToken = token ? jwtDecode(token) : null; // ✅ Use jwtDecode
+  const decodedToken = token ? jwtDecode(token) : null; 
   const userId = decodedToken?.id || decodedToken?._id;
 
   const fetchGroup = async () => {
