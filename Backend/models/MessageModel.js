@@ -20,8 +20,6 @@ const messageSchema = new mongoose.Schema(
     content: {
       type: String,
     },
-
-    // ✅ NEW: Add file support
     fileUrl: {
       type: String,
     },
